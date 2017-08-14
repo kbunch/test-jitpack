@@ -24,6 +24,4 @@ public interface IRxBus {
     // REMOVE ALL EVENTS FOR A CONTEXT
     void off(Object p_context);
 
-    <T> void post(T p_value);
-
 }
