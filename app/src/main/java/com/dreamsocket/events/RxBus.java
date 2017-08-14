@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreamsocket.rx;
+package com.dreamsocket.events;
 
 import com.jakewharton.rxrelay2.PublishRelay;
 
@@ -46,14 +46,12 @@ public class RxBus implements IRxBus{
     }
 
 
-    // SUBSCRIBE - only allows one subscription for a specific event/context combo
     @SuppressWarnings("unchecked")
     public <T> Observable<T> on(Class<T> p_class, Object p_context){
         return this.on(p_class, p_context, 0);
     }
 
-    // SUBSCRIBE - only allows one subscription for a specific event/context combo
-    // priority - The higher the number, the higher the priority. The default priority is 0
+
     @SuppressWarnings("unchecked")
     public <T> Observable<T> on(Class<T> p_class, Object p_context, int p_priority){
         return this.getSubscriptionEntry(p_class, p_context, p_priority).subject;
@@ -68,13 +66,15 @@ public class RxBus implements IRxBus{
             Iterator<SubscriptionEntry> itr = entries.iterator();
 
             while(itr.hasNext() && entries.size() > 0){
+                if(p_value instanceof IEvent && ((IEvent) p_value).isCanceled()){
+                    break;
+                }
                 itr.next().subject.accept(p_value);
             }
         }
     }
 
 
-    // REMOVE ALL
     public void off(){
         Iterator<Class<?>> itr = this.m_dispatchers.keySet().iterator();
 
@@ -86,7 +86,6 @@ public class RxBus implements IRxBus{
     }
 
 
-    // REMOVE ALL EVENTS FOR A TYPE
     public <T> void off(Class<T> p_class){
         Set<SubscriptionEntry> entries = this.m_dispatchers.remove(p_class);
 
@@ -101,7 +100,6 @@ public class RxBus implements IRxBus{
     }
 
 
-    // REMOVE SPECIFIC EVENT FOR A CONTEXT
     public <T> void off(Class<T> p_class, Object p_context){
         Set<SubscriptionEntry> entries = this.m_dispatchers.get(p_class);
 
@@ -126,7 +124,6 @@ public class RxBus implements IRxBus{
     }
 
 
-    // REMOVE ALL EVENTS FOR A CONTEXT
     public void off(Object p_context){
         Iterator<Class<?>> itr = this.m_dispatchers.keySet().iterator();
 

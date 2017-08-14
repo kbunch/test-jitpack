@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreamsocket.rx;
+package com.dreamsocket.events;
 
 
 import io.reactivex.Observable;

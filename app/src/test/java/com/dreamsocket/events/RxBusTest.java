@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreamsocket.rx;
+package com.dreamsocket.events;
 
 
 import org.junit.Before;
@@ -68,7 +68,7 @@ public class RxBusTest {
         this.m_bus.on(Event1.class, this).subscribe(listener::onEvent1Fired);
         this.m_bus.post(new Event1(1));
 
-        assertEquals("Expected Event1", this.m_events.get(0) instanceof Event1, true);
+        assertEquals("Expected Event1", true, this.m_events.get(0) instanceof Event1);
     }
 
 
@@ -80,7 +80,7 @@ public class RxBusTest {
         this.m_bus.post(new Event1(1));
         this.m_bus.post(new Event1(1));
 
-        assertEquals("Expected 2 events to be added", this.m_events.size(), 2);
+        assertEquals("Expected 2 events to be added", 2, this.m_events.size());
     }
 
 
@@ -92,8 +92,8 @@ public class RxBusTest {
         this.m_bus.post(new Event1(1));
         this.m_bus.post(new Event1(2));
 
-        assertEquals("Expected 1st event index 1", this.m_events.get(0).index, 1);
-        assertEquals("Expected 2nd event index 2", this.m_events.get(1).index, 2);
+        assertEquals("Expected 1st event index 1", 1, this.m_events.get(0).index);
+        assertEquals("Expected 2nd event index 2", 2, this.m_events.get(1).index);
     }
 
 
@@ -107,8 +107,8 @@ public class RxBusTest {
 
         this.m_bus.post(new Event1(1));
 
-        assertEquals("Expected 1st listener as index 10", this.m_listeners.get(0).index, 10);
-        assertEquals("Expected 2nd listener as index 0", this.m_listeners.get(1).index, 0);
+        assertEquals("Expected 1st listener as index 10", 10, this.m_listeners.get(0).index);
+        assertEquals("Expected 2nd listener as index 0", 0, this.m_listeners.get(1).index);
     }
 
 
@@ -121,8 +121,8 @@ public class RxBusTest {
         this.m_bus.post(new Event1(1));
         this.m_bus.post(new Event2(1));
 
-        assertEquals("Expected 1st event as Event1", this.m_events.get(0) instanceof Event1, true);
-        assertEquals("Expected 2nd event as Event2", this.m_events.get(1) instanceof Event2, true);
+        assertEquals("Expected 1st event as Event1", true, this.m_events.get(0) instanceof Event1);
+        assertEquals("Expected 2nd event as Event2", true, this.m_events.get(1) instanceof Event2);
     }
 
 
@@ -131,15 +131,15 @@ public class RxBusTest {
         for(int i = 0; i < 20; i++) {
             Listener listener = new Listener(this.m_events, this.m_listeners, i);
 
-            this.m_bus.on(Event1.class, this).subscribe(listener::onEvent1Fired);
-            this.m_bus.on(Event2.class, this).subscribe(listener::onEvent2Fired);
+            this.m_bus.on(Event1.class, listener).subscribe(listener::onEvent1Fired);
+            this.m_bus.on(Event2.class, listener).subscribe(listener::onEvent2Fired);
         }
 
         this.m_bus.off();
         this.m_bus.post(new Event1(1));
         this.m_bus.post(new Event2(1));
 
-        assertEquals("Expected no events to be fired", this.m_events.size(), 0);
+        assertEquals("Expected no events to be fired", 0, this.m_events.size());
     }
 
 
@@ -148,25 +148,27 @@ public class RxBusTest {
         Object context1 = new Object();
         Object context2 = new Object();
 
-        for(int i = 0; i < 20; i++) {
-            Listener listener = new Listener(this.m_events, this.m_listeners, i);
+        Listener listener1 = new Listener(this.m_events, this.m_listeners, 1);
+        Listener listener2 = new Listener(this.m_events, this.m_listeners, 2);
 
-            this.m_bus.on(Event1.class, context1).subscribe(listener::onEvent1Fired);
-            this.m_bus.on(Event2.class, context2).subscribe(listener::onEvent2Fired);
-        }
+        this.m_bus.on(Event1.class, context1).subscribe(listener1::onEvent1Fired);
+        this.m_bus.on(Event2.class, context2).subscribe(listener1::onEvent2Fired);
+
+        this.m_bus.on(Event1.class, context1).subscribe(listener2::onEvent1Fired);
+        this.m_bus.on(Event2.class, context2).subscribe(listener2::onEvent2Fired);
 
         this.m_bus.off(context1);
         this.m_bus.post(new Event1(1));
         this.m_bus.post(new Event2(1));
 
         for(Event event : this.m_events){
-            if(event instanceof  Event1){
+            if(event instanceof Event1){
                 fail("Expected no Event1 events to be fired for context1");
                 break;
             }
         }
 
-        assertNotEquals("Expected Event2 events to be fired for context2", this.m_events.size(), 0);
+        assertNotEquals("Expected Event2 events to be fired for context2", 0, this.m_events.size());
     }
 
 
@@ -175,23 +177,27 @@ public class RxBusTest {
         Object context1 = new Object();
         Object context2 = new Object();
 
-        for(int i = 0; i < 20; i++) {
-            int index = i % 2 == 0 ? 0 : 1;
-            Object ctx = i % 2 == 0 ? context1 : context2;
-            Listener listener = new Listener(this.m_events, this.m_listeners, index);
+        Listener listener = new Listener(this.m_events, this.m_listeners, 0);
 
-            this.m_bus.on(Event1.class, ctx).subscribe(listener::onEvent1Fired);
-        }
+        this.m_bus.on(Event1.class, context1).subscribe(listener::onEvent1Fired);
+        this.m_bus.on(Event2.class, context1).subscribe(listener::onEvent2Fired);
 
-        this.m_bus.off(context1);
+        this.m_bus.on(Event1.class, context2).subscribe(listener::onEvent1Fired);
+        this.m_bus.on(Event2.class, context2).subscribe(listener::onEvent2Fired);
+
+        this.m_bus.off(Event1.class, context1);
         this.m_bus.post(new Event1(1));
 
+        int ct = 0;
         for(Event event : this.m_events){
-            if(event.index == 0){
-                fail("Expected no Event1 events to be fired for context1");
+            if(event instanceof Event1){
+                ct++;
                 break;
             }
         }
+
+
+        assertEquals("Expected 1 Event1 events to be fired for context2", 1, ct);
     }
 
 
@@ -200,8 +206,8 @@ public class RxBusTest {
         for(int i = 0; i < 20; i++) {
             Listener listener = new Listener(this.m_events, this.m_listeners, i);
 
-            this.m_bus.on(Event1.class, this).subscribe(listener::onEvent1Fired);
-            this.m_bus.on(Event2.class, this).subscribe(listener::onEvent2Fired);
+            this.m_bus.on(Event1.class, listener).subscribe(listener::onEvent1Fired);
+            this.m_bus.on(Event2.class, listener).subscribe(listener::onEvent2Fired);
         }
 
         this.m_bus.off(Event1.class);
@@ -210,7 +216,7 @@ public class RxBusTest {
 
         for(Event event : this.m_events){
             if(event instanceof  Event1){
-                assertEquals("Expected no Event1 events to be fired", this.m_events.size(), 0);
+                assertEquals("Expected no Event1 events to be fired", 0, this.m_events.size());
                 break;
             }
         }
@@ -220,15 +226,15 @@ public class RxBusTest {
     @Test
     public void checkReentrantListenersCleared(){
         for(int i = 0; i < 20; i++) {
-            ReentrantListener listener = new ReentrantListener(this.m_events, () -> this.m_bus.off());
+            ReentrantListener listener = new ReentrantListener(this.m_events, event -> this.m_bus.off());
 
-            this.m_bus.on(Event1.class, this).subscribe(listener::onEvent1Fired);
+            this.m_bus.on(Event1.class, listener).subscribe(listener::onEvent1Fired);
         }
 
         this.m_bus.post(new Event1(1));
 
 
-        assertEquals("Expected 1 event to be fired", this.m_events.size(), 1);
+        assertEquals("Expected 1 event to be fired", 1, this.m_events.size());
     }
 
 
@@ -244,14 +250,30 @@ public class RxBusTest {
         this.m_bus.post(new Event1(1));
 
 
-        assertEquals("Expected no events to be fired", this.m_events.size(), 0);
+        assertEquals("Expected no events to be fired", 0, this.m_events.size());
+    }
+
+
+
+    @Test
+    public void checkCanceledEvent(){
+        for(int i = 0; i < 20; i++) {
+            ReentrantListener listener = new ReentrantListener(this.m_events, event -> event.cancel());
+
+            this.m_bus.on(Event1.class, listener).subscribe(listener::onEvent1Fired);
+        }
+
+        this.m_bus.post(new Event1(1));
+
+
+        assertEquals("Expected 1 event to be fired", 1, this.m_events.size());
     }
 
 
 
     // Simple Action lambda
-    protected interface Action{
-        void perform();
+    protected interface Consumer{
+        void accept(Event p_value);
     }
 
 
@@ -286,25 +308,25 @@ public class RxBusTest {
 
     protected class ReentrantListener{
 
-        protected final Action m_action;
+        protected final Consumer m_consumer;
         protected final ArrayList<Event> m_events;
 
 
-        public ReentrantListener(ArrayList<Event> p_events, Action p_action){
+        public ReentrantListener(ArrayList<Event> p_events, Consumer p_consumer){
             this.m_events = p_events;
-            this.m_action = p_action; 
+            this.m_consumer = p_consumer;
         }
 
         protected void onEvent1Fired(Event1 p_event){
             this.m_events.add(p_event);
-            this.m_action.perform();
+            this.m_consumer.accept(p_event);
         }
     }
 
 
     // Helper Events
 
-    public class Event{
+    public class Event extends com.dreamsocket.events.Event{
         public Event(int p_index){
             this.index = p_index;
         }
