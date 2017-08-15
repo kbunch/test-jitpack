@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.dreamsocket.events;
+package com.dreamsocket.utils;
 
 
-public interface IEvent {
-    boolean isCanceled();
+public interface ICancellable {
+    boolean isCancelled();
     void cancel();
 }

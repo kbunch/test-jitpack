@@ -16,6 +16,7 @@
 
 package com.dreamsocket.events;
 
+import com.dreamsocket.utils.ICancellable;
 import com.jakewharton.rxrelay2.PublishRelay;
 
 import java.lang.ref.WeakReference;
@@ -66,7 +67,7 @@ public class RxBus implements IRxBus{
             Iterator<SubscriptionEntry> itr = entries.iterator();
 
             while(itr.hasNext() && entries.size() > 0){
-                if(p_value instanceof IEvent && ((IEvent) p_value).isCanceled()){
+                if(p_value instanceof ICancellable && ((ICancellable) p_value).isCancelled()){
                     break;
                 }
                 itr.next().subject.accept(p_value);
@@ -136,14 +137,20 @@ public class RxBus implements IRxBus{
     @SuppressWarnings("unchecked")
     private <T> SubscriptionEntry<T> getSubscriptionEntry(Class<T> p_class, Object p_context, int p_priority){
         SubscriptionEntry<T> entry = new SubscriptionEntry(p_context, p_priority);
+        ConcurrentSkipListSet observers;
+        ConcurrentSkipListSet prevObservers;
 
         this.off(p_class, p_context);
 
-        if(!this.hasObservers(p_class)){
-            this.m_dispatchers.put(p_class, new ConcurrentSkipListSet<>());
+        observers = this.m_dispatchers.get(p_class);
+
+        if(observers == null){
+            observers = new ConcurrentSkipListSet<>();
+            prevObservers = this.m_dispatchers.putIfAbsent(p_class, observers);
+            observers = prevObservers != null ? prevObservers : observers;
         }
 
-        this.m_dispatchers.get(p_class).add(entry);
+        observers.add(entry);
 
         return entry;
     }

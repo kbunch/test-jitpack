@@ -17,11 +17,13 @@
 package com.dreamsocket.events;
 
 
-public class Event implements IEvent{
+import com.dreamsocket.utils.ICancellable;
+
+public class Event implements ICancellable {
 
     private boolean m_canceled;
 
-    public boolean isCanceled(){
+    public boolean isCancelled(){
         return this.m_canceled;
     }
 
