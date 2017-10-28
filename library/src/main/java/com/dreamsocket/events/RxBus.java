@@ -16,11 +16,12 @@
 
 package com.dreamsocket.events;
 
-import com.dreamsocket.utils.ICancellable;
+import com.dreamsocket.interfaces.ICancellable;
 import com.jakewharton.rxrelay2.PublishRelay;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -30,7 +31,7 @@ import io.reactivex.Observable;
 
 
 public class RxBus implements IRxBus{
-    private final ConcurrentHashMap<Class<?>, ConcurrentSkipListSet<SubscriptionEntry>> m_dispatchers;
+    private final Map<Class<?>, ConcurrentSkipListSet<SubscriptionEntry>> m_dispatchers;
 
     public RxBus(){
         this.m_dispatchers = new ConcurrentHashMap<>();
@@ -146,7 +147,7 @@ public class RxBus implements IRxBus{
 
         if(observers == null){
             observers = new ConcurrentSkipListSet<>();
-            prevObservers = this.m_dispatchers.putIfAbsent(p_class, observers);
+            prevObservers = ((ConcurrentHashMap<Class<?>, ConcurrentSkipListSet<SubscriptionEntry>>)this.m_dispatchers).putIfAbsent(p_class, observers);
             observers = prevObservers != null ? prevObservers : observers;
         }
 
