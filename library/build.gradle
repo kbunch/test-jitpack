@@ -23,9 +23,9 @@ android {
 
 dependencies {
     // reactivex
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.5'
-    compile 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
+    provided 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    provided 'io.reactivex.rxjava2:rxjava:2.1.5'
+    provided 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
 
     testImplementation 'junit:junit:4.12'
 }
