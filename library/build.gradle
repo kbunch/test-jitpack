@@ -23,22 +23,11 @@ android {
 
 dependencies {
     // reactivex
-    runtimeOnly 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    runtimeOnly 'io.reactivex.rxjava2:rxjava:2.1.5'
-    runtimeOnly 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
+    api 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    api 'io.reactivex.rxjava2:rxjava:2.1.5'
+    api 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
 
     testImplementation 'junit:junit:4.12'
 }
 
 group='com.github.kbunch.test-jitpack'
-
-// build a jar with source files
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-
-
-artifacts {
-    archives sourcesJar
-}
